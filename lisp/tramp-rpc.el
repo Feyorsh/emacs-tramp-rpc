@@ -2242,10 +2242,19 @@ would otherwise flood the echo area with \"Cannot expand tilde\"."
   ;; The generic `tramp-handle-expand-file-name' defaults non-absolute
   ;; localnames to "/" (root), but the ssh handler
   ;; (`tramp-sh-handle-expand-file-name') defaults to "~/" instead.
-  ;; This matches that behavior.
-  (when (and (tramp-tramp-file-p name)
-             (tramp-string-empty-or-nil-p (tramp-file-local-name name)))
-    (setq name (concat (file-remote-p name) "~")))
+  ;; This matches that behavior when a connection is available.
+  ;; Guard with `tramp-connectable-p' so that the tilde substitution is
+  ;; skipped during completion when no connection exists, avoiding a
+  ;; blocking connection attempt when `non-essential' is t.  When not
+  ;; connectable the generic handler falls through to "/" (root) rather
+  ;; than the home directory — acceptable for the completion case.
+  ;; Use `tramp-dissect-file-name' and `tramp-make-tramp-file-name'
+  ;; instead of `file-remote-p' to avoid re-entering expand-file-name.
+  (when (tramp-tramp-file-p name)
+    (let ((v (tramp-dissect-file-name name)))
+      (when (and (tramp-string-empty-or-nil-p (tramp-file-name-localname v))
+                 (tramp-connectable-p v))
+        (setq name (tramp-make-tramp-file-name v "~")))))
   (condition-case nil
       (let ((tramp-verbose 0))
         (tramp-handle-expand-file-name name dir))
