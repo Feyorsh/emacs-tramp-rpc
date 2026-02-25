@@ -749,6 +749,27 @@ TRAMP's `tramp-multi-hop-p' rejects methods with `tramp-copy-program'
            (bootstrap (tramp-rpc-deploy--bootstrap-vec vec)))
       (should (equal (tramp-file-name-method bootstrap) "sshx")))))
 
+(ert-deftest tramp-rpc-mock-test-multi-hop-rpc-with-sudo ()
+  "Test that /rpc:host|sudo:user@:/path passes TRAMP's multi-hop validation.
+This exercises `tramp-compute-multi-hops' which checks that each hop's
+method either uses \"%h\" in its tramp-login-args (meaning the method
+actually connects to the specified host) or that the host matches the
+previous hop.  Without tramp-login-args containing \"%h\" in the rpc
+method definition, the host validation fails with:
+  Host name `host' does not match `tramp-local-host-regexp'"
+  :tags '(:multi-hop)
+  (skip-unless tramp-rpc-mock-test--tramp-rpc-loaded)
+  ;; Verify the rpc method now has tramp-login-args with "%h"
+  (let* ((vec (make-tramp-file-name :method "rpc" :host "myhost"
+                                    :localname "/path"))
+         (login-args (tramp-get-method-parameter vec 'tramp-login-args)))
+    (should login-args)
+    (should (member "%h" (flatten-tree login-args))))
+  ;; Verify that tramp-compute-multi-hops succeeds for rpc|sudo
+  ;; (previously this would signal an error)
+  (let ((vec (tramp-dissect-file-name "/rpc:myhost|sudo:www-data@:/path")))
+    (should (tramp-compute-multi-hops vec))))
+
 ;;; ============================================================================
 ;;; Test Runner
 ;;; ============================================================================
