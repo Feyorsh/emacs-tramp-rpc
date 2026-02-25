@@ -2237,6 +2237,15 @@ signalling an error.
 `tramp-verbose' is suppressed during the first attempt because
 `tramp-error' logs a level-1 message before signalling, which
 would otherwise flood the echo area with \"Cannot expand tilde\"."
+  ;; When NAME has an empty localname (e.g. "/rpc:host:"), replace it
+  ;; with "~" so that the generic handler expands to the home directory.
+  ;; The generic `tramp-handle-expand-file-name' defaults non-absolute
+  ;; localnames to "/" (root), but the ssh handler
+  ;; (`tramp-sh-handle-expand-file-name') defaults to "~/" instead.
+  ;; This matches that behavior.
+  (when (and (tramp-tramp-file-p name)
+             (tramp-string-empty-or-nil-p (tramp-file-local-name name)))
+    (setq name (concat (file-remote-p name) "~")))
   (condition-case nil
       (let ((tramp-verbose 0))
         (tramp-handle-expand-file-name name dir))

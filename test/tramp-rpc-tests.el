@@ -1041,7 +1041,22 @@ and returns a valid path."
     (let ((expanded (expand-file-name "a/../b" dir)))
       (should (string-match-p "/b" expanded))
       (should-not (string-match-p "/a/" expanded))
-      (should (tramp-tramp-file-p expanded)))))
+      (should (tramp-tramp-file-p expanded)))
+
+    ;; Empty localname should expand to home directory, not root.
+    ;; This tests the fix for the inconsistency where "/rpc:host:" would
+    ;; resolve to "/" instead of "~" (GitHub issue #55).
+    (let* ((user-part (if tramp-rpc-test-user
+                          (concat tramp-rpc-test-user "@")
+                        ""))
+           (bare-remote (format "/rpc:%s%s:" user-part tramp-rpc-test-host))
+           (expanded (expand-file-name bare-remote)))
+      (should (tramp-tramp-file-p expanded))
+      ;; The expanded path should NOT be root "/"
+      (should-not (equal (tramp-file-local-name expanded) "/"))
+      ;; It should be the home directory (same as expanding "~")
+      (let ((home-expanded (expand-file-name (concat bare-remote "~"))))
+        (should (equal expanded home-expanded))))))
 
 ;;; ============================================================================
 ;;; Test 12: File Name Completion
