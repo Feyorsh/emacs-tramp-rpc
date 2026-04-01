@@ -332,22 +332,23 @@ mod tests {
         );
     }
 
-    /// An extremely large uid that almost certainly has no passwd entry
-    /// should return None rather than panicking or looping forever.
+    /// A uid that almost certainly has no passwd entry should return
+    /// None rather than panicking or looping forever.
+    /// Note: 0xFFFF_FFFE (-2 signed) is macOS's `nobody`, so we use
+    /// 0x7FFF_FFFE which is unused on both Linux and macOS.
     #[test]
     fn test_get_user_name_unknown_uid() {
-        // 0xFFFF_FFFE is almost guaranteed to have no passwd entry.
-        let name = get_user_name(0xFFFF_FFFE);
+        let name = get_user_name(0x7FFF_FFFE);
         assert!(
             name.is_none(),
             "get_user_name for a non-existent uid should return None"
         );
     }
 
-    /// An extremely large gid should return None.
+    /// A gid that almost certainly has no group entry should return None.
     #[test]
     fn test_get_group_name_unknown_gid() {
-        let name = get_group_name(0xFFFF_FFFE);
+        let name = get_group_name(0x7FFF_FFFE);
         assert!(
             name.is_none(),
             "get_group_name for a non-existent gid should return None"
