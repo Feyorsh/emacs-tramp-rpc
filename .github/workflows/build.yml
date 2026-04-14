@@ -81,7 +81,7 @@ jobs:
           STATIC: ${{ inputs.static }}
 
       - name: Test
-        if: inputs.test && steps.cache-binary.outputs.cache-hit != 'true'
+        if: ${{ inputs.test && steps.cache-binary.outputs.cache-hit != 'true' }}
         run: nix develop --command cargo test --manifest-path server/Cargo.toml
         env:
           RUSTFLAGS: "-D warnings"
