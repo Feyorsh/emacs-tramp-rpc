@@ -50,16 +50,14 @@
           pkgsCrossArmv7Musl = import nixpkgs {
             inherit system;
             crossSystem = lib.systems.elaborate {
-              config = "armv7l-unknown-linux-gnueabihf";
-              libc = "musl";
+              config = "armv7l-unknown-linux-musleabihf";
             };
           };
           # ARMv6 hard-float: original Raspberry Pi (ARM1176JZF-S)
           pkgsCrossArmMusl = import nixpkgs {
             inherit system;
             crossSystem = lib.systems.elaborate {
-              config = "armv6l-unknown-linux-gnueabihf";
-              libc = "musl";
+              config = "armv6l-unknown-linux-musleabihf";
             };
           };
 
