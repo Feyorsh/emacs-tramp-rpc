@@ -67,6 +67,15 @@ jobs:
         with:
           nix_path: nixpkgs=channel:nixos-unstable
 
+      - name: Cache Nix store
+        if: steps.cache-binary.outputs.cache-hit != 'true'
+        uses: nix-community/cache-nix-action@v6
+        with:
+          primary-key: nix-${{ runner.os }}-${{ hashFiles('**/*.nix', '**/flake.lock') }}
+          restore-prefixes-first-match: nix-${{ runner.os }}-
+          gc-max-store-size-linux: 4294967296
+          gc-max-store-size-macos: 4294967296
+
       - name: Build
         if: steps.cache-binary.outputs.cache-hit != 'true'
         run: |
